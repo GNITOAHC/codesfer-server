@@ -24,8 +24,17 @@ type Session struct {
 	CreatedAt string `json:"created_at"`
 }
 
+type AuthError string
+
+// implement the error interface
+func (e AuthError) Error() string {
+	return string(e)
+}
+
+// define auth errors
 const (
-	ErrUserAlreadyExists = "user already exists"
+	ErrUserAlreadyExists AuthError = "user already exists"
+	ErrUserNotFound      AuthError = "user not found"
 )
 
 func createTable() error {
@@ -117,7 +126,7 @@ func (db *dbStruct) createUser(email, password, username string) error {
 		return err
 	}
 	if user != nil {
-		return errors.New(ErrUserAlreadyExists)
+		return ErrUserAlreadyExists
 	}
 	hashed, err := hashPassword(password)
 	if err != nil {
@@ -136,7 +145,7 @@ func (db *dbStruct) getUser(email string) (*User, error) {
 	err := row.Scan(&user.Email, &user.Password, &user.Username)
 	if err != nil {
 		if err.Error() == "sql: no rows in result set" {
-			return nil, nil
+			return nil, ErrUserNotFound
 		}
 		return nil, err
 	}
@@ -175,7 +184,7 @@ func (db *dbStruct) getSession(sessionID string) (*Session, error) {
 	err := row.Scan(&session.ID, &session.Email, &session.Location, &session.Agent, &session.LastSeen, &session.CreatedAt)
 	if err != nil {
 		if err.Error() == "sql: no rows in result set" {
-			return nil, nil
+			return nil, ErrUserNotFound
 		}
 		return nil, err
 	}
