@@ -22,7 +22,13 @@ func authMiddleware(next http.Handler) http.Handler {
 			http.Error(w, "unauthorized", http.StatusUnauthorized)
 			return
 		}
-		sessionID = sessionID[7:] // Remove "Bearer "
+		// Remove "Bearer " (only if present, detect to prevent out-of-bounds)
+		if len(sessionID) > 7 && sessionID[:7] == "Bearer " {
+			sessionID = sessionID[7:]
+		} else {
+			http.Error(w, "unauthorized", http.StatusUnauthorized)
+			return
+		}
 
 		// Get username
 		username, err := auth.UsernameFromSessionID(sessionID)
