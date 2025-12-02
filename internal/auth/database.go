@@ -122,7 +122,7 @@ func (db *dbStruct) reset(table string) error {
 
 func (db *dbStruct) createUser(email, password, username string) error {
 	user, err := db.getUser(email)
-	if err != nil {
+	if err != nil && err != ErrUserNotFound {
 		return err
 	}
 	if user != nil {
